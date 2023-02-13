@@ -18,7 +18,7 @@
 	/**
 	 * Active class that will be applied to the active item.
 	 */
-	export let activeClass = 'is-active';
+	export let activeClass = 'active';
 
 	/**
 	 * Amount of space between top of screen and the section to highlight. (Usually your fixed
@@ -100,7 +100,7 @@
 	let observer: any = null;
 	let items: any[] = [];
 	let currentItem = null;
-	let lastActiveItem = null;
+	let lastActiveItem: any = null;
 	let scrollAnimationFrame: any = null;
 
 	$: cubicBezierArray = bezierEasingValue.split(',');
@@ -356,6 +356,6 @@
 	}
 </script>
 
-<component :is="tag" ref="scrollactive-nav-wrapper" class="scrollactive-nav">
+<component :is="tag" id="scrollactive-nav-wrapper" class="scrollactive-nav">
 	<slot />
 </component>

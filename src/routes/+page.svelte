@@ -4,9 +4,9 @@
 	import { onMount } from 'svelte';
 
 	let elements: any[] = [];
-	let alwaysTrack: false;
+	let alwaysTrack = false;
 	let duration: 600;
-	let clickToScroll: true;
+	let clickToScroll = true;
 	let offset: 52;
 	let easing: '.5,0,.35,1';
 
@@ -52,12 +52,12 @@
 		<div class="container">
 			{#if browser}
 				<Scrollactive
-					ref="scrollactive"
-					:offset="offset"
-					:always-track="alwaysTrack"
-					:duration="duration"
-					:click-to-scroll="clickToScroll"
-					:bezier-easing-value="easing"
+					bind:offset
+					bind:alwaysTrack
+					bind:duration
+					bind:clickToScroll
+					bind:bezierEasingValue={easing}
+					on:itemchanged={(e) => console.log(e.detail)}
 				>
 					<ul class="nav-center">
 						<li>
@@ -79,8 +79,8 @@
 	</header>
 
 	<div class="buttons">
-		<button on:click={addNewElement()}>Add new element</button>
-		<button on:click={removeElement()}>Remove last element</button>
+		<button on:click={addNewElement}>Add new element</button>
+		<button on:click={removeElement}>Remove last element</button>
 		<button on:click={() => (alwaysTrack = !alwaysTrack)}>
 			{'Always track ' + (alwaysTrack ? 'on' : 'off')}
 		</button>
@@ -128,7 +128,7 @@
 		left: 0;
 		right: 0;
 
-		.is-active {
+		:global(.active) {
 			color: #00d1b2;
 		}
 	}
