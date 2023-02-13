@@ -5,10 +5,10 @@
 
 	let elements: any[] = [];
 	let alwaysTrack = false;
-	let duration: 600;
+	let duration = 600;
 	let clickToScroll = true;
-	let offset: 52;
-	let easing: '.5,0,.35,1';
+	let offset = 52;
+	let easing = '.5,0,.35,1';
 
 	$: numberOfElements = elements.length;
 

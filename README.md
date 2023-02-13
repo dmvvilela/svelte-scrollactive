@@ -6,6 +6,8 @@ This is a port from [vue-scrollactive](https://github.com/eddiemf/vue-scrollacti
 
 For the moment you can check the demo on the official website and follow the common configuration for the module (check the example code on my repo). Just don't use Vue related stuff. Does not matter. Just use the component on Svelte way until I update this doc. It should be working fine.
 
+Remember to check if you're on the browser if you're using SvelteKit or else you will have an error.
+
 ---
 
 This component makes it simple to highlight a menu item with an 'active' class as you scroll.
