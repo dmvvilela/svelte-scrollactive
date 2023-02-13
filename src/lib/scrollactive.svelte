@@ -11,6 +11,9 @@
 		getSectionIdFromElement
 	} from './utils/index';
 	import { onMount, onDestroy, afterUpdate } from 'svelte';
+	import { createEventDispatcher } from 'svelte';
+
+	const dispatch = createEventDispatcher();
 
 	/**
 	 * Active class that will be applied to the active item.
@@ -135,7 +138,7 @@
 		if (!observer) {
 			observer = new MutationObserver(initScrollactiveItems);
 			// Calls initScrollactiveItems() whenever the DOM tree is changed inside of the wrapper
-			observer.observe($refs['scrollactive-nav-wrapper'], {
+			observer.observe(document.getElementById('scrollactive-nav-wrapper'), {
 				childList: true,
 				subtree: true
 			});
@@ -147,7 +150,7 @@
 	 * clickToScroll prop.
 	 */
 	function initScrollactiveItems() {
-		const elements = $el.querySelectorAll('.scrollactive-item');
+		const elements = document.querySelectorAll('.scrollactive-item');
 		const localItems: any[] = [];
 
 		forEach(elements, (menuElement) => {
@@ -176,7 +179,11 @@
 
 		if (sectionHasChanged) {
 			removeActiveClass();
-			$emit('itemchanged', event, currentItem, lastActiveItem);
+			dispatch('itemchanged', {
+				event,
+				currentItem,
+				lastActiveItem
+			});
 			lastActiveItem = currentItem;
 		}
 
@@ -247,7 +254,11 @@
 			currentItem = menuItem;
 
 			if (currentItem !== lastActiveItem) {
-				$emit('itemchanged', event, currentItem, lastActiveItem);
+				dispatch('itemchanged', {
+					event,
+					currentItem,
+					lastActiveItem
+				});
 				lastActiveItem = currentItem;
 			}
 		}
