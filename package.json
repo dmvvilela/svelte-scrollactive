@@ -29,7 +29,8 @@
 		"highlight-menu-item"
 	],
 	"author": {
-		"name": "Daniel Vilela"
+		"name": "Daniel Vilela",
+		"email": "dmvvilela@gmail.com"
 	},
 	"license": "MIT",
 	"bugs": {
