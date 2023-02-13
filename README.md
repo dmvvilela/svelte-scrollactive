@@ -4,9 +4,9 @@
 
 This is a port from [vue-scrollactive](https://github.com/eddiemf/vue-scrollactive) for Svelte.
 
-For the moment you can check the demo on the official website and follow the common configuration for the module (check the example code on my repo). Just don't use Vue related stuff. Does not matter. Just use the component on Svelte way until I update this doc. It should be working fine.
+For the moment you can check this demo on [REPL](https://svelte.dev/repl/d9616fce34c444d4bcac551cb5bdc0ee?version=3.55.1) and follow the common configuration for the module (check the example code on my repo). Just don't use Vue related stuff. Just use the component on Svelte way until I update this doc. It should be working fine.
 
-Remember to check if you're on the browser if you're using SvelteKit or else you will have an error.
+Remember to check if you're on the browser if you're using SvelteKit or else you will get an error.
 
 ---
 
@@ -17,7 +17,7 @@ This component makes it simple to highlight a menu item with an 'active' class a
 - Configurable easing scroll effect
 - Emits events for full control
 
-Make sure to check the [demo](https://eddiemf.github.io/vue-scrollactive/dist) where you can play around with every option.
+Make sure to check the [vue demo](https://eddiemf.github.io/vue-scrollactive/dist) where you can play around with every option.
 
 ## Installation
 
