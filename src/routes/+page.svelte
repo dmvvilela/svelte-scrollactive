@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import Scrollactive from '$lib/scrollactive.svelte';
+	import { Scrollactive } from '$lib/index';
 	import { onMount } from 'svelte';
 
 	let elements: any[] = [];

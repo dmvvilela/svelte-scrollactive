@@ -4,6 +4,10 @@
 
 This is a port from [vue-scrollactive](https://github.com/eddiemf/vue-scrollactive) for Svelte.
 
+For the moment you can check the demo on the official website and follow the common configuration for the module (check the example code on my repo). Just don't use Vue related stuff. Does not matter. Just use the component on Svelte way until I update this doc. It should be working fine.
+
+---
+
 This component makes it simple to highlight a menu item with an 'active' class as you scroll.
 
 - Highlights items with a class as you scroll
@@ -18,21 +22,19 @@ Make sure to check the [demo](https://eddiemf.github.io/vue-scrollactive/dist) w
 Install using `yarn`
 
 ```bash
-yarn add vue-scrollactive
+yarn add svelte-scrollactive
 ```
 
 or `npm`
 
 ```bash
-npm install --save vue-scrollactive
+npm install --save svelte-scrollactive
 ```
 
 then install the plugin
 
 ```js
-import VueScrollactive from 'vue-scrollactive';
-
-Vue.use(VueScrollactive);
+import { Scrollactive } from 'svelte-scrollactive';
 ```
 
 Or if you wish to include it in a `script` tag, just download the source code from the latest release [here](https://github.com/eddiemf/vue-scrollactive/releases/latest) and include the `vue-scrollactive.min.js` file located in the `dist` folder in your page as a script:
@@ -45,15 +47,15 @@ If you're not running any transpiler like babel, you'll most likely need to inst
 
 ## Usage
 
-The primary way to use the plugin is to wrap your menu in a `<scrollactive>` tag (which will be your nav) and add a `.scrollactive-item` class in your `<a>` tags as I show in the example below:
+The primary way to use the plugin is to wrap your menu in a `<Scrollactive>` tag (which will be your nav) and add a `.scrollactive-item` class in your `<a>` tags as I show in the example below:
 
 ```html
-<scrollactive class="my-nav">
+<Scrollactive class="my-nav">
   <a href="#home" class="scrollactive-item">Home</a>
   <a href="#about-us" class="scrollactive-item">About Us</a>
   <a href="#portfolio" class="scrollactive-item">Portfolio</a>
   <a href="#contact" class="scrollactive-item">Contact</a>
-</scrollactive>
+</Scrollactive>
 ```
 
 You can follow whatever structure you wish, just make sure to set the `.scrollactive-item` class in the items you want to highlight and set its `href` with a valid element ID that you would like to track while scrolling.
@@ -61,12 +63,12 @@ You can follow whatever structure you wish, just make sure to set the `.scrollac
 The secondary way to use it is almost the same as the primary but instead of relying on `href` to find your sections you'll need to set a data attribute `data-section-selector` on your elements with the section selector you wish to have.
 
 ```html
-<scrollactive class="my-nav">
+<Scrollactive class="my-nav">
   <span data-section-selector="#home" class="scrollactive-item">Home</span>
   <span data-section-selector=".about-us" class="scrollactive-item">About Us</span>
   <span data-section-selector=".portfolio div span" class="scrollactive-item">Portfolio</span>
   <span data-section-selector="#contact" class="scrollactive-item">Contact</span>
-</scrollactive>
+</Scrollactive>
 ```
 
 As you can see this gives you more freedom to choose different tags and you can use whatever CSS selector you find necessary, but it's important to notice that `data-section-selector` takes precedence over `href`, so if you have a tag `<a href="#section-1" data-section-selector="#another-section">` it will completely ignore the `#section-1` and use `#another-section` instead.
@@ -76,31 +78,29 @@ As you can see this gives you more freedom to choose different tags and you can 
 Scrollactive will emit an `itemchanged(event, currentItem, lastActiveItem)` event when an active menu item is changed to another. You can catch that event doing as the example below:
 
 ```html
-<scrollactive class="my-nav" v-on:itemchanged="onItemChanged">
+<Scrollactive class="my-nav" on:itemchanged={onItemChanged}>
   <a href="#home" class="scrollactive-item">Home</a>
   <a href="#about-us" class="scrollactive-item">About Us</a>
   <a href="#portfolio" class="scrollactive-item">Portfolio</a>
   <a href="#contact" class="scrollactive-item">Contact</a>
-</scrollactive>
+</Scrollactive>
 ```
 
 ```javascript
 // ...
-methods: {
-  onItemChanged(event, currentItem, lastActiveItem) {
-    // here you have access to everything you need regarding that event
-  },
-},
+function onItemChanged({event, currentItem, lastActiveItem}) {
+  // here you have access to everything you need regarding that event
+}
 // ...
 ```
 
 ## Configuration
 
-All options should be passed as a prop in the `<scrollactive>` component as you can see in the example below:
+All options should be passed as a prop in the `<Scrollactive>` component as you can see in the example below:
 
 ```html
-<scrollactive active-class="active" :offset="80" :duration="800" bezier-easing-value=".5,0,.35,1">
-</scrollactive>
+<Scrollactive active-class="active" :offset="80" :duration="800" bezier-easing-value=".5,0,.35,1">
+</Scrollactive>
 ```
 
 Remember that all options are optional and you can check the default values below:
