@@ -124,7 +124,7 @@ function onItemChanged({event, currentItem, lastActiveItem}) {
 All options should be passed as a prop in the `<Scrollactive>` component as you can see in the example below:
 
 ```html
-<Scrollactive active-class="is-active" :offset="80" :duration="800" bezier-easing-value=".5,0,.35,1">
+<Scrollactive active-class="is-active" offset="80" duration="800" bezier-easing-value=".5,0,.35,1">
 </Scrollactive>
 ```
 
@@ -257,4 +257,4 @@ scrollOnStart: {
 
 ## Contributing
 
-Clone the repository and install the dependencies running `yarn`. After the dependencies are installed you should be good to run `yarn start` which will load up a server with the sandbox for you to play around.
+Clone the repository and install the dependencies running `pnpm`. After the dependencies are installed you should be good to run `pnpm dev` which will load up a server with the sandbox for you to play around.
