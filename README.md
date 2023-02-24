@@ -2,7 +2,7 @@
 
 ## About
 
-This is a port from [vue-scrollactive](https://github.com/eddiemf/vue-scrollactive) for Svelte.
+This is a port from [vue-scrollactive](https://github.com/eddiemf/vue-scrollactive) to Svelte.
 
 You can check the demo on [REPL](https://svelte.dev/repl/d9616fce34c444d4bcac551cb5bdc0ee?version=3.55.1) and follow the common configuration for the module (check the example code on github repo).
 
@@ -53,7 +53,7 @@ import { Scrollactive } from 'svelte-scrollactive';
 
 The primary way to use the plugin is to wrap your menu in a `<Scrollactive>` tag (which will be your nav) and add a `.scrollactive-item` class in your `<a>` tags as I show in the example below:
 
-```html
+```js
 <Scrollactive class="my-nav">
   <a href="#home" class="scrollactive-item">Home</a>
   <a href="#about-us" class="scrollactive-item">About Us</a>
@@ -66,7 +66,7 @@ You can follow whatever structure you wish, just make sure to set the `.scrollac
 
 The secondary way to use it is almost the same as the primary but instead of relying on `href` to find your sections you'll need to set a data attribute `data-section-selector` on your elements with the section selector you wish to have.
 
-```html
+```js
 <Scrollactive class="my-nav">
   <span data-section-selector="#home" class="scrollactive-item">Home</span>
   <span data-section-selector=".about-us" class="scrollactive-item">About Us</span>
@@ -91,12 +91,10 @@ You can use the first way with Sveltekit but checking if you're in the browser f
       <Scrollactive offset={120} />
     {/key}
   {/if}
-  <div class="scrollactive-nav-wrapper">
-    <slot />
-  </div>
+  <slot />
 ```
 
-Be sure to wrap your content (`<slot />` or anything else) with the class `scrollactive-nav-wrapper` so that ScrollActive can pick up the scroll elements.
+Be sure to use the nav elements like mentioned above (using the class `scrollactive-item`). But now they can be anywhere in the page.
 
 You can also use `navigating` store with a `key` directive to always update scrollactive when the page changes (and content is updated).
 
@@ -104,7 +102,7 @@ You can also use `navigating` store with a `key` directive to always update scro
 
 Scrollactive will emit an `itemchanged(event, currentItem, lastActiveItem)` event when an active menu item is changed to another. You can catch that event doing as the example below:
 
-```html
+```js
 <Scrollactive class="my-nav" on:itemchanged={onItemChanged}>
   <a href="#home" class="scrollactive-item">Home</a>
   <a href="#about-us" class="scrollactive-item">About Us</a>
@@ -123,9 +121,8 @@ function onItemChanged({event, currentItem, lastActiveItem}) {
 
 All options should be passed as a prop in the `<Scrollactive>` component as you can see in the example below:
 
-```html
-<Scrollactive active-class="is-active" offset="80" duration="800" bezier-easing-value=".5,0,.35,1">
-</Scrollactive>
+```js
+<Scrollactive activeClass="is-active" offset="80" duration="800" bezierEasingValue=".5,0,.35,1" />
 ```
 
 Remember that all options are optional and you can check the default values below:
@@ -138,7 +135,7 @@ Remember that all options are optional and you can check the default values belo
  */
 activeClass: {
   type: String,
-  default: 'is-active',
+  default: 'active',
 },
 
 /**

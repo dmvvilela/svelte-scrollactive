@@ -52,11 +52,11 @@
 		<div class="container">
 			{#if browser}
 				<Scrollactive
-					bind:offset
-					bind:alwaysTrack
-					bind:duration
-					bind:clickToScroll
-					bind:bezierEasingValue={easing}
+					{offset}
+					{alwaysTrack}
+					{duration}
+					{clickToScroll}
+					bezierEasingValue={easing}
 					on:itemchanged={(e) => console.log(e.detail)}
 				>
 					<ul class="nav-center">
