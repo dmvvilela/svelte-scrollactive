@@ -4,9 +4,13 @@
 
 This is a port from [vue-scrollactive](https://github.com/eddiemf/vue-scrollactive) for Svelte.
 
-For the moment you can check this demo on [REPL](https://svelte.dev/repl/d9616fce34c444d4bcac551cb5bdc0ee?version=3.55.1) and follow the common configuration for the module (check the example code on my repo). Just don't use Vue related stuff. Just use the component on Svelte way until I update this doc. It should be working fine.
+You can check the demo on [REPL](https://svelte.dev/repl/d9616fce34c444d4bcac551cb5bdc0ee?version=3.55.1) and follow the common configuration for the module (check the example code on github repo).
 
-Remember to check if you're on the browser if you're using SvelteKit or else you will get an error.
+Remember to check if you're on the browser if you're using SvelteKit.
+
+Main differences from the Vue component:
+- The default scroll active class is 'active' instead of 'is-active'
+- You can use it without direct children (see below for example and why would you use this way).
 
 ---
 
@@ -17,11 +21,17 @@ This component makes it simple to highlight a menu item with an 'active' class a
 - Configurable easing scroll effect
 - Emits events for full control
 
-Make sure to check the [vue demo](https://eddiemf.github.io/vue-scrollactive/dist) where you can play around with every option.
+Make sure to check the [REPL demo](https://svelte.dev/repl/d9616fce34c444d4bcac551cb5bdc0ee?version=3.55.1) where you can play around with every option.
 
 ## Installation
 
-Install using `yarn`
+Install using `pnpm`
+
+```bash
+pnpm add svelte-scrollactive
+```
+
+or `yarn`
 
 ```bash
 yarn add svelte-scrollactive
@@ -33,21 +43,13 @@ or `npm`
 npm install --save svelte-scrollactive
 ```
 
-then install the plugin
+then import the plugin
 
 ```js
 import { Scrollactive } from 'svelte-scrollactive';
 ```
 
-Or if you wish to include it in a `script` tag, just download the source code from the latest release [here](https://github.com/eddiemf/vue-scrollactive/releases/latest) and include the `vue-scrollactive.min.js` file located in the `dist` folder in your page as a script:
-
-```html
-<script src="dist/vue-scrollactive.min.js"></script>
-```
-
-If you're not running any transpiler like babel, you'll most likely need to install a Promise polyfill such as [this](https://github.com/taylorhakes/promise-polyfill) to support older browsers since this library depends on promises to work.
-
-## Usage
+## Primary Usage
 
 The primary way to use the plugin is to wrap your menu in a `<Scrollactive>` tag (which will be your nav) and add a `.scrollactive-item` class in your `<a>` tags as I show in the example below:
 
@@ -75,6 +77,29 @@ The secondary way to use it is almost the same as the primary but instead of rel
 
 As you can see this gives you more freedom to choose different tags and you can use whatever CSS selector you find necessary, but it's important to notice that `data-section-selector` takes precedence over `href`, so if you have a tag `<a href="#section-1" data-section-selector="#another-section">` it will completely ignore the `#section-1` and use `#another-section` instead.
 
+## SvelteKit Usage
+
+You can use the first way with Sveltekit but checking if you're in the browser first. However, this will take long to show your content. So a better way is to load your content from server first (from load function) and add ScrollActive side by side like so:
+
+```js
+  import { Scrollactive } from 'svelte-scrollactive';
+  import { browser } from '$app/environment';
+  import { navigating } from '$app/stores';
+
+  {#if browser}
+    {#key $navigating}
+      <Scrollactive offset={120} />
+    {/key}
+  {/if}
+  <div class="scrollactive-nav-wrapper">
+    <slot />
+  </div>
+```
+
+Be sure to wrap your content (`<slot />` or anything else) with the class `scrollactive-nav-wrapper` so that ScrollActive can pick up the scroll elements.
+
+You can also use `navigating` store with a `key` directive to always update scrollactive when the page changes (and content is updated).
+
 ## Events
 
 Scrollactive will emit an `itemchanged(event, currentItem, lastActiveItem)` event when an active menu item is changed to another. You can catch that event doing as the example below:
@@ -89,11 +114,9 @@ Scrollactive will emit an `itemchanged(event, currentItem, lastActiveItem)` even
 ```
 
 ```javascript
-// ...
 function onItemChanged({event, currentItem, lastActiveItem}) {
   // here you have access to everything you need regarding that event
 }
-// ...
 ```
 
 ## Configuration
@@ -101,7 +124,7 @@ function onItemChanged({event, currentItem, lastActiveItem}) {
 All options should be passed as a prop in the `<Scrollactive>` component as you can see in the example below:
 
 ```html
-<Scrollactive active-class="active" :offset="80" :duration="800" bezier-easing-value=".5,0,.35,1">
+<Scrollactive active-class="is-active" :offset="80" :duration="800" bezier-easing-value=".5,0,.35,1">
 </Scrollactive>
 ```
 
