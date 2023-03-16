@@ -98,9 +98,9 @@
 	export let scrollOnStart = true;
 
 	/**
-	 * Exported function so the user can choose when to call this.
+	 * Exported function to scroll with svelte-scrollactive to any element in the page.
 	 */
-	export const scrollToHash = () => scrollToHashElement();
+	export const scrollToElement = scrollTo;
 
 	let observer: any = null;
 	let items: any[] = [];

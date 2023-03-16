@@ -11,6 +11,7 @@ Remember to check if you're on the browser if you're using SvelteKit.
 Main differences from the Vue component:
 - The default scroll active class is 'active' instead of 'is-active'
 - You can use it without direct children (see below for example and why would you use this way).
+- There is an exported function called `scrollToElement` so that you can scroll as you wish.
 
 ---
 
@@ -250,6 +251,13 @@ scrollOnStart: {
   type: Boolean,
   default: true,
 },
+
+/**
+ * Exported function to scroll with svelte-scrollactive to any element in the page.
+ */
+scrollToElement: {
+  type: Function,
+}
 ```
 
 ## Contributing

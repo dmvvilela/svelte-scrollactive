@@ -9,6 +9,7 @@
 	let clickToScroll = true;
 	let offset = 52;
 	let easing = '.5,0,.35,1';
+	let scrollToElement: any;
 
 	$: numberOfElements = elements.length;
 
@@ -58,6 +59,7 @@
 					{clickToScroll}
 					bezierEasingValue={easing}
 					on:itemchanged={(e) => console.log(e.detail)}
+					bind:scrollToElement
 				>
 					<ul class="nav-center">
 						<li>
@@ -86,6 +88,9 @@
 		</button>
 		<button on:click={() => (clickToScroll = !clickToScroll)}>
 			{`Click to scroll ${clickToScroll ? 'on' : 'off'}`}
+		</button>
+		<button on:click={() => scrollToElement(document.querySelector('#section-3'))}>
+			{`Scroll to section 3`}
 		</button>
 		<label for="duration">Duration</label>
 		<input type="number" bind:value={duration} id="duration" />
