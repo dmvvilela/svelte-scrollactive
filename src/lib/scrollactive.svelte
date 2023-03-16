@@ -97,6 +97,11 @@
 	 */
 	export let scrollOnStart = true;
 
+	/**
+	 * Exported function so the user can choose when to call this.
+	 */
+	export const scrollToHash = () => scrollToHashElement();
+
 	let observer: any = null;
 	let items: any[] = [];
 	let currentItem = null;
