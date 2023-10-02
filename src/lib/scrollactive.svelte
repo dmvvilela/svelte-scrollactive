@@ -362,5 +362,5 @@
 </script>
 
 <svelte:element this={tag} id="scrollactive-nav-wrapper" class="scrollactive-nav">
-  <slot />
+	<slot />
 </svelte:element>
