@@ -361,6 +361,6 @@
 	}
 </script>
 
-<component :is="tag" id="scrollactive-nav-wrapper" class="scrollactive-nav">
+<svelte:element this={tag} id="scrollactive-nav-wrapper" class="scrollactive-nav">
 	<slot />
-</component>
+</svelte:element>
