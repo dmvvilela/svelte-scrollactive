@@ -1,6 +1,6 @@
 {
 	"name": "svelte-scrollactive",
-	"version": "0.0.8",
+	"version": "0.0.9",
 	"title": "Svelte Scrollactive",
 	"description": "Lightweight and simple to use Svelte component that highlights menu items as you scroll the page, also scrolling to target section when clicked.",
 	"scripts": {
