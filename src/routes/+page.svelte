@@ -1,49 +1,67 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { Scrollactive } from '$lib/index';
+	import { Scrollactive } from '$lib/index.js';
 	import { onMount } from 'svelte';
 
-	let elements: any[] = [];
-	let alwaysTrack = false;
-	let duration = 600;
-	let clickToScroll = true;
-	let offset = 52;
-	let easing = '.5,0,.35,1';
-	let scrollToElement: any;
+	let elements: NodeListOf<HTMLAnchorElement> | HTMLAnchorElement[] = $state([]);
+	let alwaysTrack = $state(false);
+	let duration = $state(600);
+	let clickToScroll = $state(true);
+	let offset = $state(52);
+	let easing = $state('.5,0,.35,1');
+	let scrollactiveRef: { scrollToElement: (el: HTMLElement) => Promise<void> } | undefined =
+		$state();
 
-	$: numberOfElements = elements.length;
+	const numberOfElements = $derived(Array.from(elements).length);
 
 	onMount(() => {
-		elements = document.querySelectorAll('.scrollactive-item');
+		elements = document.querySelectorAll<HTMLAnchorElement>('.scrollactive-item');
 	});
 
-	function addNewElement() {
+	function addNewElement(): void {
 		const sectionNumber = numberOfElements + 1;
 		const colorClass = numberOfElements % 2 === 0 ? 'is-primary' : 'is-danger';
 		const menuItem = document.createElement('div');
 		menuItem.innerHTML = `<a href="#section-${sectionNumber}" class="scrollactive-item nav-item">Section ${sectionNumber}</a>`;
-		document.querySelector('.nav-center').appendChild(menuItem.firstChild);
+		const navCenter = document.querySelector('.nav-center');
+		if (navCenter && menuItem.firstChild) {
+			navCenter.appendChild(menuItem.firstChild);
+		}
 
 		const section = document.createElement('div');
 		section.innerHTML = `<section id="section-${sectionNumber}" class="section hero ${colorClass} is-fullheight">
-      <div class="container">
-      <h1 class="heading title is-1">Section ${sectionNumber}</h1>
-      </div>
-      </section>
-      `;
-		document.querySelector('main').appendChild(section.firstChild);
-		elements = document.querySelectorAll('.scrollactive-item');
+			<div class="container">
+				<h1 class="heading title is-1">Section ${sectionNumber}</h1>
+			</div>
+		</section>`;
+		const main = document.querySelector('main');
+		if (main && section.firstChild) {
+			main.appendChild(section.firstChild);
+		}
+		elements = document.querySelectorAll<HTMLAnchorElement>('.scrollactive-item');
 	}
 
-	function removeElement() {
+	function removeElement(): void {
 		if (numberOfElements >= 1) {
-			const elementsIds = [].map.call(elements, (el) => el.hash);
-			const lastElementId = elementsIds.slice(-1);
+			const elementsArray = Array.from(elements);
+			const lastElement = elementsArray[elementsArray.length - 1];
+			if (lastElement) {
+				const lastElementId = lastElement.hash;
+				const navItem = document.querySelector(`.nav-center a[href="${lastElementId}"]`);
+				navItem?.remove();
+				const sectionEl = document.querySelector(lastElementId);
+				if (sectionEl) {
+					document.querySelector('main')?.removeChild(sectionEl);
+				}
+			}
+			elements = document.querySelectorAll<HTMLAnchorElement>('.scrollactive-item');
+		}
+	}
 
-			document.querySelector(`.nav-center a[href="${lastElementId}"]`).remove();
-			document.querySelector('main').removeChild(document.querySelector(lastElementId));
-
-			elements = document.querySelectorAll('.scrollactive-item');
+	function handleScrollToSection3(): void {
+		const section = document.querySelector<HTMLElement>('#section-3');
+		if (section && scrollactiveRef) {
+			scrollactiveRef.scrollToElement(section);
 		}
 	}
 </script>
@@ -53,13 +71,13 @@
 		<div class="container">
 			{#if browser}
 				<Scrollactive
+					bind:this={scrollactiveRef}
 					{offset}
 					{alwaysTrack}
 					{duration}
 					{clickToScroll}
 					bezierEasingValue={easing}
-					on:itemchanged={(e) => console.log(e.detail)}
-					bind:scrollToElement
+					onitemchanged={(detail) => console.log(detail)}
 				>
 					<ul class="nav-center">
 						<li>
@@ -81,15 +99,15 @@
 	</header>
 
 	<div class="buttons">
-		<button on:click={addNewElement}>Add new element</button>
-		<button on:click={removeElement}>Remove last element</button>
-		<button on:click={() => (alwaysTrack = !alwaysTrack)}>
+		<button onclick={addNewElement}>Add new element</button>
+		<button onclick={removeElement}>Remove last element</button>
+		<button onclick={() => (alwaysTrack = !alwaysTrack)}>
 			{'Always track ' + (alwaysTrack ? 'on' : 'off')}
 		</button>
-		<button on:click={() => (clickToScroll = !clickToScroll)}>
+		<button onclick={() => (clickToScroll = !clickToScroll)}>
 			{`Click to scroll ${clickToScroll ? 'on' : 'off'}`}
 		</button>
-		<button on:click={() => scrollToElement(document.querySelector('#section-3'))}>
+		<button onclick={handleScrollToSection3}>
 			{`Scroll to section 3`}
 		</button>
 		<label for="duration">Duration</label>
@@ -127,15 +145,15 @@
 	</main>
 </div>
 
-<style lang="scss">
+<style>
 	.nav.is-fixed {
 		position: fixed;
 		left: 0;
 		right: 0;
+	}
 
-		:global(.active) {
-			color: #00d1b2;
-		}
+	.nav.is-fixed :global(.active) {
+		color: #00d1b2;
 	}
 
 	.section {
@@ -149,38 +167,36 @@
 		right: 100px;
 		padding: 15px 30px;
 		border-radius: 10px;
-		background-color: #7a7a7a;
 		background-color: #fff;
+	}
 
-		label {
-			display: block;
-		}
+	.buttons label {
+		display: block;
+	}
 
-		input,
-		button {
-			display: block;
-			width: 100%;
-			height: 42px;
-			padding: 10px 20px;
-			margin-top: 15px;
-			margin-bottom: 15px;
-			border: 0;
-			border: 2px solid #00d1b2;
-			border-radius: 10px;
-			font-weight: 600;
-			outline: 0;
-			transition: all 0.1s;
-		}
+	.buttons input,
+	.buttons button {
+		display: block;
+		width: 100%;
+		height: 42px;
+		padding: 10px 20px;
+		margin-top: 15px;
+		margin-bottom: 15px;
+		border: 2px solid #00d1b2;
+		border-radius: 10px;
+		font-weight: 600;
+		outline: 0;
+		transition: all 0.1s;
+	}
 
-		button {
-			background-color: #00d1b2;
-			cursor: pointer;
-			color: #fff;
+	.buttons button {
+		background-color: #00d1b2;
+		cursor: pointer;
+		color: #fff;
+	}
 
-			&:hover {
-				background-color: #fff;
-				color: #00d1b2;
-			}
-		}
+	.buttons button:hover {
+		background-color: #fff;
+		color: #00d1b2;
 	}
 </style>

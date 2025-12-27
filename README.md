@@ -9,6 +9,7 @@ You can check the demo on [REPL](https://svelte.dev/repl/d9616fce34c444d4bcac551
 Remember to check if you're on the browser if you're using SvelteKit.
 
 Main differences from the Vue component:
+
 - The default scroll active class is 'active' instead of 'is-active'
 - You can use it without direct children (see below for example and why would you use this way).
 - There is an exported function called `scrollToElement` so that you can scroll as you wish.
@@ -56,10 +57,18 @@ The primary way to use the plugin is to wrap your menu in a `<Scrollactive>` tag
 
 ```js
 <Scrollactive class="my-nav">
-  <a href="#home" class="scrollactive-item">Home</a>
-  <a href="#about-us" class="scrollactive-item">About Us</a>
-  <a href="#portfolio" class="scrollactive-item">Portfolio</a>
-  <a href="#contact" class="scrollactive-item">Contact</a>
+	<a href="#home" class="scrollactive-item">
+		Home
+	</a>
+	<a href="#about-us" class="scrollactive-item">
+		About Us
+	</a>
+	<a href="#portfolio" class="scrollactive-item">
+		Portfolio
+	</a>
+	<a href="#contact" class="scrollactive-item">
+		Contact
+	</a>
 </Scrollactive>
 ```
 
@@ -69,10 +78,18 @@ The secondary way to use it is almost the same as the primary but instead of rel
 
 ```js
 <Scrollactive class="my-nav">
-  <span data-section-selector="#home" class="scrollactive-item">Home</span>
-  <span data-section-selector=".about-us" class="scrollactive-item">About Us</span>
-  <span data-section-selector=".portfolio div span" class="scrollactive-item">Portfolio</span>
-  <span data-section-selector="#contact" class="scrollactive-item">Contact</span>
+	<span data-section-selector="#home" class="scrollactive-item">
+		Home
+	</span>
+	<span data-section-selector=".about-us" class="scrollactive-item">
+		About Us
+	</span>
+	<span data-section-selector=".portfolio div span" class="scrollactive-item">
+		Portfolio
+	</span>
+	<span data-section-selector="#contact" class="scrollactive-item">
+		Contact
+	</span>
 </Scrollactive>
 ```
 
@@ -105,16 +122,24 @@ Scrollactive will emit an `itemchanged(event, currentItem, lastActiveItem)` even
 
 ```js
 <Scrollactive class="my-nav" on:itemchanged={onItemChanged}>
-  <a href="#home" class="scrollactive-item">Home</a>
-  <a href="#about-us" class="scrollactive-item">About Us</a>
-  <a href="#portfolio" class="scrollactive-item">Portfolio</a>
-  <a href="#contact" class="scrollactive-item">Contact</a>
+	<a href="#home" class="scrollactive-item">
+		Home
+	</a>
+	<a href="#about-us" class="scrollactive-item">
+		About Us
+	</a>
+	<a href="#portfolio" class="scrollactive-item">
+		Portfolio
+	</a>
+	<a href="#contact" class="scrollactive-item">
+		Contact
+	</a>
 </Scrollactive>
 ```
 
 ```javascript
-function onItemChanged({event, currentItem, lastActiveItem}) {
-  // here you have access to everything you need regarding that event
+function onItemChanged({ event, currentItem, lastActiveItem }) {
+	// here you have access to everything you need regarding that event
 }
 ```
 
