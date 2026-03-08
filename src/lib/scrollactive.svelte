@@ -1,121 +1,92 @@
 <script lang="ts">
-	// @ts-ignore
 	import bezierEasing from 'bezier-easing';
 	import { ScrollContainer } from './ScrollContainer';
 	import {
 		forEach,
-		find,
 		getIdFromHash,
 		pushHashToUrl,
 		getSectionSelector,
 		getSectionIdFromElement
 	} from './utils/index';
-	import { onMount, onDestroy, afterUpdate } from 'svelte';
-	import { createEventDispatcher } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
+	import type { Snippet } from 'svelte';
 
-	const dispatch = createEventDispatcher();
+	interface Props {
+		/** Active class that will be applied to the active item. */
+		activeClass?: string;
+		/** Amount of space between top of screen and the section to highlight. */
+		offset?: number;
+		/** Amount of space between the top of the screen and the section to highlight when clicking. */
+		scrollOffset?: number | null;
+		/** The selector string of the scroll container element. Defaults to window. */
+		scrollContainerSelector?: string;
+		/** Enables/disables the scrolling when clicking in a menu item. */
+		clickToScroll?: boolean;
+		/** The duration of the scroll animation when clicking to scroll is activated. */
+		duration?: number;
+		/** Defines if the plugin should track the section change when clicking an item to scroll. */
+		alwaysTrack?: boolean;
+		/** Custom easing value for the click to scroll functionality. */
+		bezierEasingValue?: string;
+		/** Decides if the URL should be modified with the section id when clicking a scrollactive item. */
+		modifyUrl?: boolean;
+		/** If true the active class will only be applied when a section matches exactly. */
+		exact?: boolean;
+		/** If true the active class will be applied to the first item before you scroll past it. */
+		highlightFirstItem?: boolean;
+		/** Changes the scrollactive container component html tag. */
+		tag?: string;
+		/** If true the screen will scroll down to the element in the URL when mounted. */
+		scrollOnStart?: boolean;
+		/** Exported function to scroll with svelte-scrollactive to any element in the page. */
+		scrollToElement?: (target: Element) => Promise<void>;
+		/** Callback fired when the active item changes. */
+		onitemchanged?: (detail: {
+			event: Event;
+			currentItem: HTMLElement | null;
+			lastActiveItem: HTMLElement | null;
+		}) => void;
+		children?: Snippet;
+	}
 
-	/**
-	 * Active class that will be applied to the active item.
-	 */
-	export let activeClass = 'active';
+	let {
+		activeClass = 'active',
+		offset = 20,
+		scrollOffset = null,
+		scrollContainerSelector = '',
+		clickToScroll = true,
+		duration = 600,
+		alwaysTrack = false,
+		bezierEasingValue = '.5,0,.35,1',
+		modifyUrl = true,
+		exact = false,
+		highlightFirstItem = false,
+		tag = 'nav',
+		scrollOnStart = true,
+		scrollToElement = $bindable(scrollTo),
+		onitemchanged,
+		children
+	}: Props = $props();
 
-	/**
-	 * Amount of space between top of screen and the section to highlight. (Usually your fixed
-	 * header's height).
-	 */
-	export let offset = 20;
+	// Keep the bound value in sync
+	$effect(() => {
+		scrollToElement = scrollTo;
+	});
 
-	/**
-	 * Amount of space between the top of the screen and the section to highlight when clicking a
-	 * scrollactive item to scroll. It will use the value of the `offset` prop if none is provided
-	 * here. Useful when you want to use the `offset` prop to make an item be active as soon as
-	 * it shows on the screen but still scroll to the top of the section when clicking the item.
-	 */
-	export let scrollOffset: any = null;
+	let observer: MutationObserver | null = null;
+	let items: { section: HTMLElement; menuElement: HTMLElement }[] = [];
+	let currentItem: HTMLElement | null = null;
+	let lastActiveItem: HTMLElement | null = null;
+	let scrollAnimationFrame: number | null = null;
 
-	/**
-	 * The selector string of the scroll container element you'd like to use. It defaults to the
-	 * window object (most common), but you might want to change in case you're using an element
-	 * as container with overflow.
-	 */
-	export let scrollContainerSelector = '';
-
-	/**
-	 * Enables/disables the scrolling when clicking in a menu item.
-	 * Disable if you'd like to handle the scrolling by your own.
-	 */
-	export let clickToScroll = true;
-
-	/**
-	 * The duration of the scroll animation when clicking to scroll is activated.
-	 */
-	export let duration = 600;
-
-	/**
-	 * Defines if the plugin should track the section change when clicking an item to scroll to
-	 * its section. If set to true, it will always keep track and change the active class to the
-	 * current section while scrolling, if false, the active class will be immediately applied to
-	 * the clicked menu item, ignoring the passed sections until the scrolling is over.
-	 */
-	export let alwaysTrack = false;
-
-	/**
-	 * Your custom easing value for the click to scroll functionality.
-	 * It must be a string with 4 values separated by commas in a cubic bezier format.
-	 */
-	export let bezierEasingValue = '.5,0,.35,1';
-
-	/**
-	 * Decides if the URL should be modified with the section id when clicking a scrollactive
-	 * item.
-	 */
-	export let modifyUrl = true;
-
-	/**
-	 * If true the active class will only be applied when a section matches exactly one of the
-	 * scrollactive items, meaning it will be highlighted when scrolling exactly inside the
-	 * section. If false (default) it will always highlight the last item which was matched
-	 * in a section, even if it is already outside that section (and not inside another that's
-	 * being tracked).
-	 */
-	export let exact = false;
-
-	/**
-	 * If true the active class will be applied to the first scrollactive-item before you scroll
-	 * past it (even if you didn't reach it yet).
-	 */
-	export let highlightFirstItem = false;
-
-	/**
-	 * Changes the scrollactive container component html tag.
-	 */
-	export let tag = 'nav';
-
-	/**
-	 * If true the screen will scroll down to the element in the URL when the component is mounted.
-	 */
-	export let scrollOnStart = true;
-
-	/**
-	 * Exported function to scroll with svelte-scrollactive to any element in the page.
-	 */
-	export const scrollToElement = scrollTo;
-
-	let observer: any = null;
-	let items: any[] = [];
-	let currentItem = null;
-	let lastActiveItem: any = null;
-	let scrollAnimationFrame: any = null;
-
-	$: cubicBezierArray = bezierEasingValue.split(',');
-	$: scrollContainer = new ScrollContainer(scrollContainerSelector);
+	let cubicBezierArray = $derived(bezierEasingValue.split(','));
+	let scrollContainer = $derived(new ScrollContainer(scrollContainerSelector));
 
 	onMount(() => {
 		resetOnDOMChange();
 		initScrollactiveItems();
 		removeActiveClass();
-		currentItem = getItemInsideWindow() as any;
+		currentItem = getItemInsideWindow();
 
 		if (currentItem) currentItem.classList.add(activeClass);
 
@@ -124,13 +95,13 @@
 		scrollContainer.addScrollListener(onScroll);
 	});
 
-	afterUpdate(() => {
+	$effect(() => {
 		initScrollactiveItems();
 	});
 
 	onDestroy(() => {
 		scrollContainer.removeScrollListener();
-		window.cancelAnimationFrame(scrollAnimationFrame);
+		if (scrollAnimationFrame) window.cancelAnimationFrame(scrollAnimationFrame);
 	});
 
 	/**
@@ -138,15 +109,15 @@
 	 * scrollactive wrapper.
 	 */
 	function resetOnDOMChange() {
-		const MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
-
 		if (!observer) {
 			observer = new MutationObserver(initScrollactiveItems);
-			// Calls initScrollactiveItems() whenever the DOM tree is changed inside of the wrapper
-			observer.observe(document.getElementById('scrollactive-nav-wrapper'), {
-				childList: true,
-				subtree: true
-			});
+			observer.observe(
+				document.getElementById('scrollactive-nav-wrapper') as HTMLElement,
+				{
+					childList: true,
+					subtree: true
+				}
+			);
 		}
 	}
 
@@ -156,21 +127,26 @@
 	 */
 	function initScrollactiveItems() {
 		const elements = document.querySelectorAll('.scrollactive-item');
-		const localItems: any[] = [];
+		const localItems: { section: HTMLElement; menuElement: HTMLElement }[] = [];
 
 		forEach(elements, (menuElement) => {
-			const section = document.querySelector(getSectionSelector(menuElement));
+			const el = menuElement as HTMLElement;
+			const section = document.querySelector(getSectionSelector(el)) as HTMLElement | null;
 			if (!section) return;
 
-			localItems.push({ section, menuElement });
+			localItems.push({ section, menuElement: el });
 		});
 
 		items = localItems;
 
 		if (clickToScroll) {
-			forEach(elements, (element) => element.addEventListener('click', onMenuItemClick));
+			forEach(elements, (element) =>
+				element.addEventListener('click', onMenuItemClick)
+			);
 		} else {
-			forEach(elements, (element) => element.removeEventListener('click', onMenuItemClick));
+			forEach(elements, (element) =>
+				element.removeEventListener('click', onMenuItemClick)
+			);
 		}
 	}
 
@@ -178,13 +154,13 @@
 	 * Will be called when scrolling event is triggered to handle the addition of the active class
 	 * in the current section item and fire the change event.
 	 */
-	function onScroll(event) {
+	function onScroll(event: Event) {
 		currentItem = getItemInsideWindow();
 		const sectionHasChanged = currentItem !== lastActiveItem;
 
 		if (sectionHasChanged) {
 			removeActiveClass();
-			dispatch('itemchanged', {
+			onitemchanged?.({
 				event,
 				currentItem,
 				lastActiveItem
@@ -192,7 +168,6 @@
 			lastActiveItem = currentItem;
 		}
 
-		// Check first because item might be null if not inside any section
 		if (currentItem) currentItem.classList.add(activeClass);
 	}
 
@@ -200,34 +175,36 @@
 	 * Gets the scrollactive item that corresponds to the current section inside the window
 	 */
 	function getItemInsideWindow() {
-		let currentItem;
+		let currentItem: HTMLElement | undefined;
 
 		forEach(items, ({ menuElement, section }, index) => {
-			const isFirstItem = index === 0;
-			const distanceFromTop = scrollContainer.getDistanceFromTop();
-			const targetOffsetTop = getOffsetTop(section) - offset;
-			const isScreenPastSectionStart = distanceFromTop >= targetOffsetTop;
-			const isScreenBeforeSectionEnd = distanceFromTop < targetOffsetTop + section.offsetHeight;
-			const isScreenInsideSection = isScreenPastSectionStart && isScreenBeforeSectionEnd;
+				const isFirstItem = index === 0;
+				const distanceFromTop = scrollContainer.getDistanceFromTop();
+				const targetOffsetTop = getOffsetTop(section) - offset;
+				const isScreenPastSectionStart = distanceFromTop >= targetOffsetTop;
+				const isScreenBeforeSectionEnd =
+					distanceFromTop < targetOffsetTop + section.offsetHeight;
+				const isScreenInsideSection = isScreenPastSectionStart && isScreenBeforeSectionEnd;
 
-			if (isFirstItem && highlightFirstItem) {
-				if (isScreenBeforeSectionEnd) currentItem = menuElement;
+				if (isFirstItem && highlightFirstItem) {
+					if (isScreenBeforeSectionEnd) currentItem = menuElement;
+				}
+
+				if (exact && isScreenInsideSection) currentItem = menuElement;
+				if (!exact && isScreenPastSectionStart) currentItem = menuElement;
 			}
+		);
 
-			if (exact && isScreenInsideSection) currentItem = menuElement;
-			if (!exact && isScreenPastSectionStart) currentItem = menuElement;
-		});
-
-		return currentItem;
+		return currentItem ?? null;
 	}
 
 	/**
 	 * Handles the scrolling when clicking a menu item.
 	 */
-	async function onMenuItemClick(event) {
+	async function onMenuItemClick(event: Event) {
 		event.preventDefault();
 
-		const menuItem = event.target;
+		const menuItem = event.target as HTMLAnchorElement;
 		const sectionSelector = getSectionSelector(menuItem);
 		const section = document.querySelector(sectionSelector);
 
@@ -239,14 +216,9 @@
 			return;
 		}
 
-		/**
-		 *  Temporarily removes the scroll listener and the request animation frame so the active
-		 *  class will only be applied to the clicked element, and not all elements while the window
-		 *  is scrolling.
-		 */
 		if (!alwaysTrack) {
 			scrollContainer.removeScrollListener();
-			window.cancelAnimationFrame(scrollAnimationFrame);
+			if (scrollAnimationFrame) window.cancelAnimationFrame(scrollAnimationFrame);
 
 			removeActiveClass();
 			menuItem.classList.add(activeClass);
@@ -259,7 +231,7 @@
 			currentItem = menuItem;
 
 			if (currentItem !== lastActiveItem) {
-				dispatch('itemchanged', {
+				onitemchanged?.({
 					event,
 					currentItem,
 					lastActiveItem
@@ -276,12 +248,14 @@
 	/**
 	 * Scrolls the page to the given target element.
 	 */
-	function scrollTo(target: any) {
+	function scrollTo(target: Element) {
 		return new Promise<void>((resolve) => {
-			const targetDistanceFromTop = getOffsetTop(target);
+			const targetDistanceFromTop = getOffsetTop(target as HTMLElement);
 			const startingY = scrollContainer.getDistanceFromTop();
 			const distanceFromTarget = targetDistanceFromTop - startingY;
-			const easing = bezierEasing(...cubicBezierArray);
+			const easing = bezierEasing(
+				...(cubicBezierArray.map(Number) as [number, number, number, number])
+			);
 			let startingTime: number | null = null;
 
 			const step = (currentTime: number) => {
@@ -293,8 +267,9 @@
 				if (progress >= duration) progress = duration;
 				if (progressPercentage >= 1) progressPercentage = 1;
 
-				const localOffset = scrollOffset || offset;
-				const perTick = startingY + easing(progressPercentage) * (distanceFromTarget - localOffset);
+				const localOffset = scrollOffset ?? offset;
+				const perTick =
+					startingY + easing(progressPercentage) * (distanceFromTarget - localOffset);
 
 				scrollContainer.scrollTo(0, perTick);
 
@@ -312,13 +287,13 @@
 	/**
 	 * Gets the top offset position of an element in the document.
 	 */
-	function getOffsetTop(element: any) {
+	function getOffsetTop(element: HTMLElement) {
 		let yPosition = 0;
-		let nextElement = element;
+		let nextElement: HTMLElement | null = element;
 
 		while (nextElement) {
 			yPosition += nextElement.offsetTop;
-			nextElement = nextElement.offsetParent;
+			nextElement = nextElement.offsetParent as HTMLElement | null;
 		}
 
 		if (scrollContainer.getOffsetTop()) {
@@ -332,7 +307,6 @@
 	 * Removes the active class from all scrollactive items.
 	 */
 	function removeActiveClass() {
-		// Must be called with 'call' to prevent bugs on some devices
 		forEach(items, ({ menuElement }) => {
 			menuElement.classList.remove(activeClass);
 		});
@@ -349,18 +323,19 @@
 		const hashElement = document.getElementById(getIdFromHash(hash));
 		if (!hashElement) return;
 
-		window.location.hash = ''; // Clears the hash to prevent scroll from jumping
+		window.location.hash = '';
 
 		setTimeout(() => {
 			const yPos = hashElement.offsetTop - offset;
 
 			scrollContainer.scrollTo(0, yPos);
-			// Sets the hash back with pushState so it won't jump to the element ignoring the offset
 			pushHashToUrl(hash);
 		}, 0);
 	}
 </script>
 
 <svelte:element this={tag} id="scrollactive-nav-wrapper" class="scrollactive-nav">
-	<slot />
+	{#if children}
+		{@render children()}
+	{/if}
 </svelte:element>
