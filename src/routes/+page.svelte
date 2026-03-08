@@ -3,15 +3,15 @@
 	import { Scrollactive } from '$lib/index';
 	import { onMount } from 'svelte';
 
-	let elements: any[] = [];
-	let alwaysTrack = false;
-	let duration = 600;
-	let clickToScroll = true;
-	let offset = 52;
-	let easing = '.5,0,.35,1';
-	let scrollToElement: any;
+	let elements: ArrayLike<Element> = $state([]);
+	let alwaysTrack = $state(false);
+	let duration = $state(600);
+	let clickToScroll = $state(true);
+	let offset = $state(52);
+	let easing = $state('.5,0,.35,1');
+	let scrollToElement: ((target: Element) => Promise<void>) | undefined = $state();
 
-	$: numberOfElements = elements.length;
+	let numberOfElements = $derived(elements.length);
 
 	onMount(() => {
 		elements = document.querySelectorAll('.scrollactive-item');
@@ -22,7 +22,7 @@
 		const colorClass = numberOfElements % 2 === 0 ? 'is-primary' : 'is-danger';
 		const menuItem = document.createElement('div');
 		menuItem.innerHTML = `<a href="#section-${sectionNumber}" class="scrollactive-item nav-item">Section ${sectionNumber}</a>`;
-		document.querySelector('.nav-center').appendChild(menuItem.firstChild);
+		document.querySelector('.nav-center')?.appendChild(menuItem.firstChild!);
 
 		const section = document.createElement('div');
 		section.innerHTML = `<section id="section-${sectionNumber}" class="section hero ${colorClass} is-fullheight">
@@ -31,17 +31,20 @@
       </div>
       </section>
       `;
-		document.querySelector('main').appendChild(section.firstChild);
+		document.querySelector('main')?.appendChild(section.firstChild!);
 		elements = document.querySelectorAll('.scrollactive-item');
 	}
 
 	function removeElement() {
 		if (numberOfElements >= 1) {
-			const elementsIds = [].map.call(elements, (el) => el.hash);
-			const lastElementId = elementsIds.slice(-1);
+			const elementsIds = Array.from(elements).map((el) => (el as HTMLAnchorElement).hash);
+			const lastElementId = elementsIds.at(-1);
 
-			document.querySelector(`.nav-center a[href="${lastElementId}"]`).remove();
-			document.querySelector('main').removeChild(document.querySelector(lastElementId));
+			if (lastElementId) {
+				document.querySelector(`.nav-center a[href="${lastElementId}"]`)?.remove();
+				const sectionEl = document.querySelector(lastElementId);
+				if (sectionEl) document.querySelector('main')?.removeChild(sectionEl);
+			}
 
 			elements = document.querySelectorAll('.scrollactive-item');
 		}
@@ -58,7 +61,7 @@
 					{duration}
 					{clickToScroll}
 					bezierEasingValue={easing}
-					on:itemchanged={(e) => console.log(e.detail)}
+					onitemchanged={(detail) => console.log(detail)}
 					bind:scrollToElement
 				>
 					<ul class="nav-center">
@@ -81,16 +84,16 @@
 	</header>
 
 	<div class="buttons">
-		<button on:click={addNewElement}>Add new element</button>
-		<button on:click={removeElement}>Remove last element</button>
-		<button on:click={() => (alwaysTrack = !alwaysTrack)}>
+		<button onclick={addNewElement}>Add new element</button>
+		<button onclick={removeElement}>Remove last element</button>
+		<button onclick={() => (alwaysTrack = !alwaysTrack)}>
 			{'Always track ' + (alwaysTrack ? 'on' : 'off')}
 		</button>
-		<button on:click={() => (clickToScroll = !clickToScroll)}>
+		<button onclick={() => (clickToScroll = !clickToScroll)}>
 			{`Click to scroll ${clickToScroll ? 'on' : 'off'}`}
 		</button>
-		<button on:click={() => scrollToElement(document.querySelector('#section-3'))}>
-			{`Scroll to section 3`}
+		<button onclick={() => scrollToElement?.(document.querySelector('#section-3')!)}>
+			Scroll to section 3
 		</button>
 		<label for="duration">Duration</label>
 		<input type="number" bind:value={duration} id="duration" />
@@ -149,7 +152,6 @@
 		right: 100px;
 		padding: 15px 30px;
 		border-radius: 10px;
-		background-color: #7a7a7a;
 		background-color: #fff;
 
 		label {
@@ -164,7 +166,6 @@
 			padding: 10px 20px;
 			margin-top: 15px;
 			margin-bottom: 15px;
-			border: 0;
 			border: 2px solid #00d1b2;
 			border-radius: 10px;
 			font-weight: 600;
